@@ -37,7 +37,12 @@ jobs:
         run: pwsh bin/Debug/net*/playwright.ps1 install
 
       - name: Run xUnit tests
-        run: dotnet test --logger:"console;verbosity=detailed" --results-directory ./allure-results
+        run: dotnet test --logger:"console;verbosity=detailed"
+
+      - name: Copy Allure results from bin to root
+        run: |
+          mkdir -p allure-results
+          find . -type d -path "*/bin/Debug/net*/allure-results" -exec cp -r {}/* allure-results/ \; || echo "No results found"
 
       - name: Install Allure CLI and Generate Report
         uses: simple-elf/allure-report-action@v1.7
