@@ -1,4 +1,4 @@
-name: Run xUnit Tests with Allure
+name: Run xUnit Playwright Tests with Allure
 
 on:
   push:
@@ -28,9 +28,11 @@ jobs:
       - name: Build
         run: dotnet build --no-restore
 
-      - name: Run xUnit tests with Allure
-        run: |
-          dotnet test --logger:"console;verbosity=detailed" --results-directory ./allure-results
+      - name: Install Playwright Browsers
+        run: pwsh bin/Debug/net*/playwright.ps1 install
+
+      - name: Run xUnit tests
+        run: dotnet test --logger:"console;verbosity=detailed" --results-directory ./allure-results
 
       - name: Install Allure CLI
         run: |
