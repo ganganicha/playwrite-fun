@@ -13,6 +13,10 @@ jobs:
     env:
       FUNDA_USER_AGENT: ${{ secrets.FUNDA_USER_AGENT }}
 
+    defaults:
+      run:
+        working-directory: PlaywrightTests
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,4 +43,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: ./allure-report
+          path: PlaywrightTests/allure-report
