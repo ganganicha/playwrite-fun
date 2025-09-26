@@ -1,4 +1,4 @@
-name: Run Playwright Tests with Allure
+name: Run xUnit Tests with Allure
 
 on:
   push:
@@ -13,34 +13,40 @@ jobs:
     env:
       FUNDA_USER_AGENT: ${{ secrets.FUNDA_USER_AGENT }}
 
-    defaults:
-      run:
-        working-directory: PlaywrightTests
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
-          node-version: '18'
+          dotnet-version: '8.0.x'  # or your version
 
-      - name: Install dependencies
-        run: npm install
+      - name: Restore dependencies
+        run: dotnet restore
 
-      - name: Run Playwright tests
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Run xUnit tests with Allure
         run: |
-          npx playwright install
-          npx playwright test
+          dotnet test --logger:"console;verbosity=detailed" --results-directory ./allure-results
+
+      - name: Install Allure CLI
+        run: |
+          sudo apt update
+          sudo apt install -y openjdk-11-jre
+          curl -o allure.tgz -L https://github.com/allure-framework/allure2/releases/latest/download/allure-2.27.0.tgz
+          tar -xzf allure.tgz
+          sudo mv allure-2.27.0 /opt/allure
+          sudo ln -s /opt/allure/bin/allure /usr/bin/allure
 
       - name: Generate Allure Report
         run: |
-          npm install -g allure-commandline --save-dev
           allure generate ./allure-results --clean -o ./allure-report
 
-      - name: Upload Allure Report as artifact
+      - name: Upload Allure Report
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: PlaywrightTests/allure-report
+          path: ./allure-report
