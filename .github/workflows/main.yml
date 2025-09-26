@@ -20,7 +20,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'  # Adjust if needed
+          dotnet-version: '8.0.x'
 
       - name: Restore dependencies
         run: dotnet restore
@@ -34,15 +34,27 @@ jobs:
       - name: Run xUnit tests
         run: dotnet test --logger:"console;verbosity=detailed" --results-directory ./allure-results
 
-      - name: Install Allure CLI
-        uses: simple-elf/allure-install-action@v1
+      - name: Get Allure history
+        uses: actions/checkout@v4
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
 
       - name: Generate Allure Report
-        run: |
-          allure generate ./allure-results --clean -o ./allure-report
-
-      - name: Upload Allure Report
-        uses: actions/upload-artifact@v4
+        uses: simple-elf/allure-report-action@v1.7
+        if: always()
         with:
-          name: allure-report
-          path: ./allure-report
+          allure_results: allure-results
+          allure_report: allure-report
+          gh_pages: gh-pages
+          allure_history: allure-history
+
+      - name: Deploy Allure Report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-history
+          publish_branch: gh-pages
